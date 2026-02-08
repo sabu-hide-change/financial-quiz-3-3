@@ -1,32 +1,25 @@
-/* DEPENDENCIES:
-  npm install lucide-react recharts clsx tailwind-merge
-
-  BUILD FIX (if needed):
-  CI=false npm run build
-*/
+// npm install lucide-react recharts
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  CheckCircle, 
-  XCircle, 
-  Play, 
-  RotateCcw, 
-  Flag, 
+  Check, 
+  X, 
   Home, 
+  RotateCcw, 
+  BookOpen, 
+  Flag, 
   ChevronRight, 
-  AlertCircle,
-  Check,
-  X
+  BarChart2, 
+  Play
 } from 'lucide-react';
 
-// ------------------------------------------------------------------
-// DATA SOURCE (Based on the uploaded document)
-// ------------------------------------------------------------------
-
-const QUESTIONS = [
+/* ------------------------------------------------------------------
+   データ定義 (問題集コンテンツ)
+   ------------------------------------------------------------------ */
+const QUESTION_DATA = [
   {
     id: 1,
-    title: "問題 1 生産計画",
+    category: "生産計画",
     question: "生産計画に関する記述として、最も適切なものはどれか。",
     options: [
       "生産計画の役割として、納期や生産量の保証、製品品質の保証、設備稼働率の維持などがある。",
@@ -34,30 +27,30 @@ const QUESTIONS = [
       "生産計画を業務で分類すると、手順計画、工程設計、負荷計画、日程計画に分類できる。",
       "手順計画では、設計情報を基に、加工手順、使用設備、標準作業時間などを検討する。"
     ],
-    correctAnswer: 3, // エ
+    answer: 3, // index 3 = エ
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：エ</strong></p>
-        <p>手順計画（工程設計）では、設計情報を基に、加工手順、使用設備、標準作業時間などを検討し、製品の効率的な生産方法を決定します。</p>
-        <div className="bg-slate-100 p-3 rounded-md">
-          <p className="font-bold mb-2">生産計画の分類</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><strong>手順計画（工程設計）：</strong> 「作り方」を決める（手順、設備、標準時間）。</li>
-            <li><strong>工数計画（負荷計画）：</strong> 「量と能力」を比較・調整する（人員、設備時間）。</li>
-            <li><strong>日程計画：</strong> 「スケジュール」を決める（開始・完了日）。</li>
+        <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm">
+          <p className="font-bold mb-2">【ここが重要】</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>生産計画は製品の生産量と生産時期を決定する活動。</li>
+            <li>業務別の分類：①手順計画（工程設計）、②工数計画（負荷計画）、③日程計画。</li>
+            <li>期間別の分類：大日程（年）、中日程（月）、小日程（週・日）。</li>
           </ul>
         </div>
-        <p className="text-xs text-slate-500 mt-2">
-          ※ア：品質保証は生産計画の直接的な役割ではありません。<br/>
-          ※イ：負荷計画で比較するのは「工数（負荷）」と「能力」です。材料ではありません。<br/>
-          ※ウ：手順計画と工程設計は同じ意味（別名）なので、重複しています。
-        </p>
+        <div className="text-sm space-y-2">
+          <p><strong>ア ×：</strong>品質保証は生産計画の直接的な目的（効率化、納期保証、稼働率維持）には含まれません。</p>
+          <p><strong>イ ×：</strong>負荷計画（工数計画）で比較するのは「生産能力」と「必要工数」です。手持ち材料ではありません。</p>
+          <p><strong>ウ ×：</strong>手順計画の別名が工程設計です。分類としては「手順計画（工程設計）」「工数計画（負荷計画）」「日程計画」の3つです。</p>
+          <p><strong>エ ○：</strong>記述の通りです。手順計画では、製品の効率的な作り方（手順、設備、標準時間）を決定します。</p>
+        </div>
       </div>
     )
   },
   {
     id: 2,
-    title: "問題 2 スケジューリング",
+    category: "スケジューリング",
     question: "スケジューリングに関する記述として、最も不適切なものはどれか。",
     options: [
       "フォワードスケジューリングとは、作業の開始時点から、順番に予定を組んでいく方法である。",
@@ -65,47 +58,32 @@ const QUESTIONS = [
       "バックワードスケジューリングは、予め決められた納期を守るために、作業開始日を決める方法である。",
       "プロジェクトスケジューリングでは、必要な作業を全て抽出し、それぞれの作業の開始日と完了日が分かるようにする。"
     ],
-    correctAnswer: 1, // イが不適切
+    answer: 1, // index 1 = イ
     explanation: (
-      <div className="space-y-4 text-sm">
-        <p><strong>正解（不適切）：イ</strong></p>
-        <p>記述は「フローショップスケジューリング」の説明です。ジョブショップスケジューリングは、<strong>多品種少量生産</strong>で、機能別レイアウトの場合に、作業や機械の順番を最適化する手法です。</p>
-        <div className="bg-slate-100 p-3 rounded-md">
-          <p className="font-bold mb-2">スケジューリング手法</p>
-          <table className="w-full text-xs border-collapse border border-slate-300">
-            <thead>
-              <tr className="bg-slate-200">
-                <th className="border p-1">手法</th>
-                <th className="border p-1">特徴</th>
-                <th className="border p-1">適用</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="border p-1">ジョブショップ</td>
-                <td className="border p-1">順序最適化</td>
-                <td className="border p-1">多品種少量 (機能別)</td>
-              </tr>
-              <tr>
-                <td className="border p-1">フローショップ</td>
-                <td className="border p-1">機械割当最適化</td>
-                <td className="border p-1">少種多量 (製品別)</td>
-              </tr>
-              <tr>
-                <td className="border p-1">プロジェクト</td>
-                <td className="border p-1">全体日程管理</td>
-                <td className="border p-1">個別生産</td>
-              </tr>
-            </tbody>
-          </table>
+      <div className="space-y-4">
+        <p><strong>正解：イ</strong></p>
+        <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm">
+          <p className="font-bold mb-2">【スケジューリングの分類】</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li><strong>フォワード：</strong>開始日基準。納期は後から決まる。</li>
+            <li><strong>バックワード：</strong>納期基準。納期を守るための開始日を決める。</li>
+            <li><strong>ジョブショップ：</strong>多品種少量生産（機能別レイアウト）向け。順序最適化。</li>
+            <li><strong>フローショップ：</strong>少種多量生産（製品別レイアウト）向け。</li>
+          </ul>
+        </div>
+        <div className="text-sm space-y-2">
+          <p><strong>ア ○：</strong>フォワードスケジューリングの正しい定義です。</p>
+          <p><strong>イ ×：</strong>記述は「フローショップスケジューリング」の説明です。ジョブショップは多品種少量生産に適しています。</p>
+          <p><strong>ウ ○：</strong>バックワードスケジューリングの正しい定義です。</p>
+          <p><strong>エ ○：</strong>プロジェクトスケジューリング（PERT等）の正しい定義です。</p>
         </div>
       </div>
     )
   },
   {
     id: 3,
-    title: "問題 3 PERT1",
-    question: "来月から開始するプロジェクトのスケジューリングをPERTで行ったところ、下図のようになった。最も適切な記述はどれか。",
+    category: "PERT1",
+    question: "来月から開始するプロジェクトのスケジューリングをPERTで行った。以下の図について、最も適切な記述はどれか。",
     diagramType: "pert1",
     options: [
       "ノード7の最早着手日は、16日である。",
@@ -113,26 +91,57 @@ const QUESTIONS = [
       "ノード6の最遅着手日は、20日である。",
       "ノード3の最早着手日は4日、最遅着手日6日である。"
     ],
-    correctAnswer: 3, // エ
+    answer: 3, // index 3 = エ
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：エ</strong></p>
-        <p>ノード3の最早着手日は作業B(4日)直後なので<strong>4日</strong>。<br/>最遅着手日は、クリティカルパス上のノード4(最早=最遅=14日)から作業E(8日)を引いた、14 - 8 = <strong>6日</strong>となります。</p>
-        <div className="bg-slate-100 p-3 rounded-md">
-          <p className="font-bold mb-2">計算のポイント</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><strong>クリティカルパス：</strong> A(8) → D(6) → H(12) = 26日 (赤ルート)</li>
-            <li>ノード7の最早着手日 = 26日</li>
-            <li>ノード6の最遅着手日 = 26 - J(3) = 23日</li>
+        <div className="text-sm space-y-2">
+          <p><strong>解説：</strong></p>
+          <p>各経路の所要日数を計算します。</p>
+          <ul className="list-disc pl-4">
+            <li>経路1 (A→D→H): 8+6+12 = 26日 (最大長＝クリティカルパス)</li>
+            <li>経路2 (B→E→H): 4+8+12 = 24日</li>
+            <li>経路3 (B→F→I): 4+9+3 = 16日</li>
+            <li>経路4 (C→G→I): 5+7+3 = 15日</li>
+            <li>経路5 (C→J): 5+3 = 8日</li>
+            {/* Note: Diagram interpretation based on provided image in prompt */}
           </ul>
+          <hr className="my-2"/>
+          <p><strong>ア ×：</strong>ノード7（結合点）への最長経路は26日なので、最早着手日は26日です。</p>
+          <p><strong>イ ×：</strong>クリティカルパスは最長経路である A→D→H です。</p>
+          <p><strong>ウ ×：</strong>ノード7の最遅(26) - J(3) = 23日。または ノード5の最遅 - G(7) で計算。正しくは23日です。</p>
+          <p><strong>エ ○：</strong>
+             ノード3の最早：B(4)のみ流入 → <strong>4日</strong>。<br/>
+             ノード3の最遅：クリティカルパス上のノード4の最遅(14) - E(8) = <strong>6日</strong>。<br/>
+             (※ノード4の最遅 = ノード7(26) - H(12) = 14日)
+          </p>
         </div>
       </div>
     )
   },
   {
     id: 4,
-    title: "問題 4 PERT2",
-    question: "下表およびPERT図において、空欄Ｘ、Ｙに入る数値、及びクリティカルパスについて、最も適切な組み合わせを選べ。",
+    category: "PERT2",
+    question: "下表の作業A～Hで構成されるプロジェクトにおいて、PERTを用いる。空欄Ｘ、Ｙに入る数値、及びクリティカルパスの組み合わせとして適切なものはどれか。",
+    table: (
+      <table className="w-full text-xs text-left border-collapse border border-gray-300 mb-4">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-1">作業</th><th className="border p-1">日数</th><th className="border p-1">先行作業</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td className="border p-1">A</td><td className="border p-1">20</td><td className="border p-1">なし</td></tr>
+          <tr><td className="border p-1">B</td><td className="border p-1">25</td><td className="border p-1">A</td></tr>
+          <tr><td className="border p-1">C</td><td className="border p-1">15</td><td className="border p-1">A</td></tr>
+          <tr><td className="border p-1">D</td><td className="border p-1">30</td><td className="border p-1">A</td></tr>
+          <tr><td className="border p-1">E</td><td className="border p-1">20</td><td className="border p-1">B</td></tr>
+          <tr><td className="border p-1">F</td><td className="border p-1">25</td><td className="border p-1">C</td></tr>
+          <tr><td className="border p-1">G</td><td className="border p-1">20</td><td className="border p-1">B, C, D</td></tr>
+          <tr><td className="border p-1">H</td><td className="border p-1">10</td><td className="border p-1">E, F, G</td></tr>
+        </tbody>
+      </table>
+    ),
     diagramType: "pert2",
     options: [
       "Ｘ：50　　Ｙ：45　　クリティカルパス：A - D - G - H",
@@ -140,119 +149,162 @@ const QUESTIONS = [
       "Ｘ：50　　Ｙ：45　　クリティカルパス：A - C - F - H",
       "Ｘ：45　　Ｙ：40　　クリティカルパス：A - D - G - H"
     ],
-    correctAnswer: 0, // ア
+    answer: 0, // index 0 = ア
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：ア</strong></p>
-        <p><strong>クリティカルパス：</strong> A(20)+D(30)+G(20)+H(10) = 80日。これが最長の経路です。</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li><strong>空欄X (ノード2の最遅)：</strong> ノード5の最遅(70) - E(20) = 50。</li>
-          <li><strong>空欄Y (ノード3の最遅)：</strong> ノード5の最遅(70) - F(25) = 45。</li>
-        </ul>
+        <div className="text-sm space-y-2">
+          <p><strong>最早着手日の計算(フォワード):</strong></p>
+          <ul className="list-disc pl-4">
+            <li>Start(0) → A(20) → Node1(20)</li>
+            <li>Node1 → D(30) → Node4(50) [B(25)経由、C(15)経由よりDが大きい]</li>
+            <li>Node4 → G(20) → Node5(70) [E(20)経由、F(25)経由と比較]</li>
+            <li>Node5 → H(10) → End(80)</li>
+          </ul>
+          <p><strong>最遅着手日の計算(バックワード):</strong></p>
+          <ul className="list-disc pl-4">
+            <li>End(80) - H(10) = Node5(70)</li>
+            <li><strong>X (Node2の最遅):</strong> Node5(70)からE(20)を戻るのではなく、ダミー(0)を通ってNode4へ行くルートも考慮。
+              <br/>Node4の最遅 = Node5(70) - G(20) = 50。
+              <br/>Node2からはE(20)でNode5へ、またはダミーでNode4へ。
+              <br/>Eルート: 70-20=50。ダミールート: 50-0=50。よって <strong>X=50</strong>。
+            </li>
+            <li><strong>Y (Node3の最遅):</strong> Node5(70)からF(25)を戻るルート、またはダミーでNode4へ行くルート。
+              <br/>Fルート: 70-25=45。ダミールート: Node4(50)-0=50。
+              <br/>小さい方を取るので <strong>Y=45</strong>。
+            </li>
+          </ul>
+          <p><strong>クリティカルパス:</strong> 最早=最遅の経路。A(20)→D(30)→G(20)→H(10) = 80日。</p>
+        </div>
       </div>
     )
   },
   {
     id: 5,
-    title: "問題 5 PERT3",
-    question: "あるジョブは5つの作業工程A～Eで構成されている。下表の先行関係があるとき、最短完了日数の値として、適切なものはどれか。",
-    diagramType: "pert3",
-    options: [
-      "9",
-      "11",
-      "14",
-      "16"
-    ],
-    correctAnswer: 2, // 14
+    category: "PERT3",
+    question: "以下の作業工程の最短完了日数はどれか。",
+    table: (
+      <table className="w-full text-xs text-left border-collapse border border-gray-300 mb-4">
+        <thead>
+          <tr className="bg-gray-100"><th className="border p-1">作業</th><th className="border p-1">日数</th><th className="border p-1">先行</th></tr>
+        </thead>
+        <tbody>
+          <tr><td className="border p-1">A</td><td className="border p-1">5</td><td className="border p-1">なし</td></tr>
+          <tr><td className="border p-1">B</td><td className="border p-1">2</td><td className="border p-1">A</td></tr>
+          <tr><td className="border p-1">C</td><td className="border p-1">4</td><td className="border p-1">A</td></tr>
+          <tr><td className="border p-1">D</td><td className="border p-1">2</td><td className="border p-1">C</td></tr>
+          <tr><td className="border p-1">E</td><td className="border p-1">3</td><td className="border p-1">B, D</td></tr>
+        </tbody>
+      </table>
+    ),
+    options: ["9", "11", "14", "16"],
+    answer: 2, // index 2 = ウ
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：ウ (14日)</strong></p>
-        <p>先行関係からアローダイアグラムを描くと、以下の経路が考えられます。</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>A(5) → B(2) → E(3) = 10日</li>
-          <li>A(5) → C(4) → D(2) → E(3) = <strong>14日</strong> (最長＝クリティカルパス)</li>
-        </ul>
-        <p>よって最短完了日数は14日です。</p>
+        <div className="text-sm space-y-2">
+          <p>経路を列挙して最長を探します。</p>
+          <ul className="list-disc pl-4">
+            <li>経路1: A(5) → B(2) → E(3) = 10日</li>
+            <li>経路2: A(5) → C(4) → D(2) → E(3) = <strong>14日</strong></li>
+          </ul>
+          <p>最長経路がプロジェクトの最短完了日数となります。</p>
+        </div>
       </div>
     )
   },
   {
     id: 6,
-    title: "問題 6 CPM (Critical Path Method)",
-    question: "下表はプロジェクト業務の各作業要件である。CPMを適用して、最短プロジェクト遂行期間となる条件を達成したときの『最小費用』を選べ。",
-    diagramType: "cpm_table",
-    options: [
-      "220万円",
-      "240万円",
-      "250万円",
-      "280万円"
-    ],
-    correctAnswer: 0, // 220万円
+    category: "CPM (Crashing)",
+    question: "CPMを適用して、最短プロジェクト遂行期間となる条件を達成したときの最小費用を選べ。",
+    table: (
+      <table className="w-full text-xs text-left border-collapse border border-gray-300 mb-4">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="border p-1">作業</th><th className="border p-1">先行</th><th className="border p-1">所要(日)</th><th className="border p-1">最短(日)</th><th className="border p-1">短縮費(万)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td className="border p-1">A</td><td className="border p-1">-</td><td className="border p-1">6</td><td className="border p-1">6</td><td className="border p-1">-</td></tr>
+          <tr><td className="border p-1">B</td><td className="border p-1">A</td><td className="border p-1">4</td><td className="border p-1">3</td><td className="border p-1">10</td></tr>
+          <tr><td className="border p-1">C</td><td className="border p-1">A</td><td className="border p-1">5</td><td className="border p-1">2</td><td className="border p-1">30</td></tr>
+          <tr><td className="border p-1">D</td><td className="border p-1">B, C</td><td className="border p-1">6</td><td className="border p-1">3</td><td className="border p-1">50</td></tr>
+        </tbody>
+      </table>
+    ),
+    options: ["220万円", "240万円", "250万円", "280万円"],
+    answer: 0, // index 0 = ア
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：ア (220万円)</strong></p>
-        <ol className="list-decimal pl-5 space-y-2">
-          <li>
-            <strong>標準での最短期間：</strong><br/>
-            経路A(6)→B(4)→D(6) = 16日<br/>
-            経路A(6)→C(5)→D(6) = 17日 (クリティカルパス)<br/>
-            しかし、設問は「最短プロジェクト遂行期間(各作業を限界まで短縮した期間)」を目指しています。
-          </li>
-          <li>
-            <strong>限界短縮時の期間：</strong><br/>
-            A(6)+B(3)+D(3)=12日, A(6)+C(2)+D(3)=11日。<br/>
-            よってプロジェクトの最短限界はA(6)は短縮不可のため、経路A→B→Dの<strong>12日</strong>がボトルネックになります。
-          </li>
-          <li>
-            <strong>短縮コスト計算：</strong><br/>
-            目標12日を達成するために短縮が必要な作業とコスト。<br/>
-            ・D：3日短縮必須 (50万×3 = 150万)<br/>
-            ・B：1日短縮必須 (10万×1 = 10万) ※A(6)+B(3)+D(3)=12にするため<br/>
-            ・C：A(6)+C(?)+D(3) <= 12日であればよい。Cは3日(12-6-3)以下ならOK。標準5日→3日へ2日短縮で十分 (30万×2 = 60万)<br/>
-            <strong>合計：150 + 10 + 60 = 220万円</strong>
-          </li>
-        </ol>
+        <div className="text-sm space-y-2">
+          <p><strong>1. 全作業を最短期間にした場合の日数計算:</strong></p>
+          <p>A(6) → B(3) → D(3) = 12日<br/>A(6) → C(2) → D(3) = 11日<br/>クリティカルパスは A-B-D で 12日。</p>
+          
+          <p><strong>2. 余裕期間の調整:</strong></p>
+          <p>経路 A-C-D は 11日。プロジェクト期間は12日なので、Cは1日余裕があります。<br/>
+          作業Cは最短2日ですが、3日で済めば良いわけです。<br/>
+          Cを2日に短縮するには、標準(5日)から3日短縮が必要ですが、3日(5-2)まで短縮せず、2日短縮(5-3)で十分です。</p>
+          
+          <p><strong>3. 費用の計算:</strong></p>
+          <ul className="list-disc pl-4">
+            <li>A: 短縮なし (0円)</li>
+            <li>B: 4日→3日 (1日短縮 × 10万 = 10万)</li>
+            <li>D: 6日→3日 (3日短縮 × 50万 = 150万)</li>
+            <li>C: 5日→3日でOK (2日短縮 × 30万 = 60万) <span className="text-red-600 font-bold">※ここがポイント</span></li>
+          </ul>
+          <p>合計: 10 + 150 + 60 = <strong>220万円</strong></p>
+        </div>
       </div>
     )
   },
   {
     id: 7,
-    title: "問題 7 ジョンソン法",
-    question: "工程1（穴あけ）→工程2（塗装）の順で行われる2工程フローショップにおいて、下表の製品A～Dを最短で終了させる場合の総時間を選べ。(単位：分)",
-    diagramType: "johnson_table",
-    options: [
-      "50分",
-      "32分",
-      "28分",
-      "37分"
-    ],
-    correctAnswer: 2, // 28分
+    category: "ジョンソン法",
+    question: "工程1→工程2の順で行われる生産ラインで、4製品A, B, C, Dを生産する。ジョンソン法を用いて順序を最適化した時の最短時間は？",
+    table: (
+      <table className="w-full text-xs text-left border-collapse border border-gray-300 mb-4">
+        <thead>
+          <tr className="bg-gray-100"><th className="border p-1">製品</th><th className="border p-1">工程1</th><th className="border p-1">工程2</th></tr>
+        </thead>
+        <tbody>
+          <tr><td className="border p-1">A</td><td className="border p-1">10</td><td className="border p-1">5</td></tr>
+          <tr><td className="border p-1">B</td><td className="border p-1">3</td><td className="border p-1">7</td></tr>
+          <tr><td className="border p-1">C</td><td className="border p-1">4</td><td className="border p-1">2</td></tr>
+          <tr><td className="border p-1">D</td><td className="border p-1">8</td><td className="border p-1">6</td></tr>
+        </tbody>
+      </table>
+    ),
+    options: ["50分", "32分", "28分", "37分"],
+    answer: 2, // index 2 = ウ
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：ウ (28分)</strong></p>
-        <p><strong>ジョンソン法の手順：</strong></p>
-        <ol className="list-decimal pl-5 space-y-1">
-          <li>最小値を探す→Cの工程2(2分)。後工程なのでCを<strong>最後</strong>に配置。[ ... , C ]</li>
-          <li>残りの最小値→Bの工程1(3分)。前工程なのでBを<strong>最初</strong>に配置。[ B, ... , C ]</li>
-          <li>残りの最小値→Aの工程2(5分)。後工程なのでAを後ろから詰める。[ B, ... , A, C ]</li>
-          <li>残りはD。[ B, D, A, C ] の順序。</li>
-        </ol>
-        <p className="mt-2"><strong>ガントチャート計算：</strong></p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>工程1完了時刻：B(3)→D(11)→A(21)→C(25)</li>
-          <li>工程2完了時刻：
-            <br/>B: 3+7=10
-            <br/>D: max(11,10)+6=17
-            <br/>A: max(21,17)+5=26
-            <br/>C: max(25,26)+2=<strong>28分</strong>
-          </li>
-        </ul>
+        <div className="text-sm space-y-2">
+          <p><strong>ジョンソン法の手順:</strong></p>
+          <ol className="list-decimal pl-4">
+            <li>最小値を探す → Cの工程2(2)が最小。工程2(後)なのでCを<strong>最後</strong>に。 [ ? ? ? C ]</li>
+            <li>残りで最小 → Bの工程1(3)。工程1(前)なのでBを<strong>最初</strong>に。 [ B ? ? C ]</li>
+            <li>残りで最小 → Aの工程2(5)。工程2(後)なのでAを後ろ詰め。 [ B ? A C ]</li>
+            <li>残りはD。順序は <strong>B → D → A → C</strong>。</li>
+          </ol>
+          <p><strong>ガントチャート計算:</strong></p>
+          <div className="overflow-x-auto">
+            <table className="text-xs border-collapse border">
+              <tbody>
+                <tr><td className="border bg-gray-100 p-1">工程1</td><td className="border p-1">B(0-3)</td><td className="border p-1">D(3-11)</td><td className="border p-1">A(11-21)</td><td className="border p-1">C(21-25)</td></tr>
+                <tr><td className="border bg-gray-100 p-1">工程2</td><td className="border p-1 text-gray-400">待(0-3)</td><td className="border p-1">B(3-10)</td><td className="border p-1">D(11-17)</td><td className="border p-1">A(21-26)</td><td className="border p-1">C(26-28)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p>最終完了時刻は <strong>28分</strong>。</p>
+        </div>
       </div>
     )
   },
   {
     id: 8,
-    title: "問題 8 需要予測",
+    category: "需要予測",
     question: "需要予測に関する記述として、最も不適切なものはどれか。",
     options: [
       "加重移動平均法による予測で、重みをすべて同じにした場合、予測値は単純移動平均法と同一となる。",
@@ -260,24 +312,22 @@ const QUESTIONS = [
       "指数平滑法による予想で、直近の実績の影響を強く反映したい場合は、平滑化指数を大きくすればよい。",
       "加重平均法による予測で、過去のデータの影響を少なくしたい場合は、重みを減らせばよい。"
     ],
-    correctAnswer: 1, // イが不適切
+    answer: 1, // index 1 = イ
     explanation: (
-      <div className="space-y-4 text-sm">
-        <p><strong>正解（不適切）：イ</strong></p>
-        <p>ノイズ（一時的な変動）を除去し、平滑化するためには、用いるデータ数（期間）を<strong>増やす</strong>必要があります。データ数を減らすと、直近の変動（ノイズ）の影響を強く受けてしまいます。</p>
-        <div className="bg-slate-100 p-3 rounded-md">
-          <p className="font-bold mb-2">需要予測手法の特性</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><strong>移動平均法：</strong> 期間を長くするほど平滑化される（ノイズ除去）。</li>
-            <li><strong>指数平滑法：</strong> 平滑化指数αが大きいほど、直近実績に敏感になる（追従性アップ）。</li>
-          </ul>
+      <div className="space-y-4">
+        <p><strong>正解：イ</strong></p>
+        <div className="text-sm space-y-2">
+          <p><strong>ア ○：</strong>重みが全て同じ（例：全て1）なら、単純平均と同じ計算になります。</p>
+          <p><strong>イ ×：</strong>ノイズ（特異な変動）を除去し、傾向を平滑化するには、データ数（期間）を<strong>増やす</strong>必要があります。データ数が少ないと、直近のノイズの影響を大きく受けます。</p>
+          <p><strong>ウ ○：</strong>指数平滑法：予測 = 旧予測 + α(実績 - 旧予測)。α（平滑化指数）が大きいほど、実績との乖離を大きく修正＝直近実績の影響が強くなります。</p>
+          <p><strong>エ ○：</strong>加重平均で過去のデータの影響を減らすには、そのデータの重みを小さくします。</p>
         </div>
       </div>
     )
   },
   {
     id: 9,
-    title: "問題 9 生産統制",
+    category: "生産統制",
     question: "生産統制に関する記述として、最も適切なものはどれか。",
     options: [
       "生産統制は、大きくわけて進捗管理、現品管理、余力管理、販売管理の4つから構成される。",
@@ -285,30 +335,30 @@ const QUESTIONS = [
       "進捗管理では、入荷した資材の管理や、日程計画に対する仕事の進捗状況を管理する。",
       "現品管理では、部品や仕掛品の運搬や保管状況を管理し、部品の過不足を未然に防止する。"
     ],
-    correctAnswer: 3, // エ
+    answer: 3, // index 3 = エ
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：エ</strong></p>
-        <p>現品管理は「物」の管理であり、部品・仕掛品の所在や数量（過不足）を管理します。</p>
-        <div className="bg-slate-100 p-3 rounded-md">
-          <p className="font-bold mb-2">生産統制の3要素</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><strong>進捗管理（日程）：</strong> 計画に対する遅れ・進みの調整。</li>
-            <li><strong>現品管理（物）：</strong> 資材・仕掛品の運搬・保管・数量管理。</li>
-            <li><strong>余力管理（工数）：</strong> 人・設備の負荷と能力の調整。※原価管理は含まない。</li>
+        <div className="bg-blue-50 p-3 rounded border border-blue-200 text-sm">
+          <p className="font-bold">【生産統制の3本柱】</p>
+          <ul className="list-disc pl-4">
+            <li><strong>進捗管理（日程）：</strong>計画に対し遅れがないか調整。</li>
+            <li><strong>現品管理（物）：</strong>資材・仕掛品の所在と数量の管理。</li>
+            <li><strong>余力管理（工数）：</strong>能力と負荷のバランス調整。</li>
           </ul>
         </div>
-        <p className="text-xs text-slate-500 mt-2">
-          ※ア：販売管理は含まれません。<br/>
-          ※イ：製品原価の管理は原価管理であり、余力管理（工数管理）とは異なります。<br/>
-          ※ウ：入荷した資材の管理は「現品管理」の領域です。
-        </p>
+        <div className="text-sm space-y-2">
+          <p><strong>ア ×：</strong>「販売管理」は含まれません。</p>
+          <p><strong>イ ×：</strong>余力管理は「負荷と能力」の管理です。「原価」管理は主目的ではありません。</p>
+          <p><strong>ウ ×：</strong>「入荷した資材の管理」は現品管理の領域です。</p>
+          <p><strong>エ ○：</strong>記述の通りです。</p>
+        </div>
       </div>
     )
   },
   {
     id: 10,
-    title: "問題 10 生産の管理方式",
+    category: "生産管理方式",
     question: "生産の管理方式に関する記述として、最も適切なものはどれか。",
     options: [
       "追番管理方式は、生産計画に対する実績の差異を容易に把握できるというメリットがある。",
@@ -316,22 +366,22 @@ const QUESTIONS = [
       "製番管理方式で生産された製品において、使用した部品の一部に欠陥が見つかった場合、その部品を作った時期を特定するのは難しい。",
       "生産座席予約システムでは、短納期の顧客要求に対しても、いつでも柔軟に生産の対応ができる。"
     ],
-    correctAnswer: 0, // ア
+    answer: 0, // index 0 = ア
     explanation: (
-      <div className="space-y-4 text-sm">
+      <div className="space-y-4">
         <p><strong>正解：ア</strong></p>
-        <p>追番（累計製造番号）管理方式では、例えば「本日予定：No.1000まで」に対し「実績：No.980完了」なら「20台遅れ」と即座に差異が把握できます。</p>
-        <p className="text-xs text-slate-500 mt-2">
-          ※イ：オーダーエントリー方式は、工程内の製品にオーダーを引き当て、仕様変更など<strong>柔軟に対応できる</strong>のが特徴です。<br/>
-          ※ウ：製番管理方式は、全て同じ製番で紐づくため、<strong>追跡（トレーサビリティ）が容易</strong>です。<br/>
-          ※エ：座席予約システムは、枠（座席）が埋まっている場合、短納期の要求に柔軟に対応するのは<strong>難しい</strong>です。
-        </p>
+        <div className="text-sm space-y-2">
+          <p><strong>ア ○：</strong>追番（累計製造番号）を用いると、「計画の番号」と「実績の番号」を比べるだけで進捗差異が分かります。</p>
+          <p><strong>イ ×：</strong>オーダーエントリー方式は、仕掛中の製品にオーダーを引き当て、仕様変更やオプション対応を行うため、個別要求に対応<strong>できます</strong>。</p>
+          <p><strong>ウ ×：</strong>製番管理方式は、製品と部品が製番で紐づいているため、トレーサビリティ（追跡可能性）が高く、特定は<strong>容易</strong>です。</p>
+          <p><strong>エ ×：</strong>生産座席予約（座席＝生産枠）がいっぱいの場合は、柔軟な対応は<strong>難しい</strong>です。</p>
+        </div>
       </div>
     )
   },
   {
     id: 11,
-    title: "問題 11 トヨタ生産方式",
+    category: "トヨタ生産方式",
     question: "トヨタ生産方式に関する記述として、最も不適切なものはどれか。",
     options: [
       "かんばんの枚数及びそこに指示される量は、生産量と同時に工程間の仕掛品の数も指示することになる。",
@@ -339,582 +389,445 @@ const QUESTIONS = [
       "プルシステムを導入して、効率的な生産を行うためには、最終組み立てラインの生産量の平準化が重要となる。",
       "JITは、必要なものを、必要な時に、必要な数だけ生産する方式で、これを実現するため、後工程引取り方式を採用している。"
     ],
-    correctAnswer: 1, // イ（不適切）
+    answer: 1, // index 1 = イ
     explanation: (
-      <div className="space-y-4 text-sm">
-        <p><strong>正解（不適切）：イ</strong></p>
-        <p>かんばんの主な2種類は、「生産指示かんばん」と<strong>「引取りかんばん」</strong>です。「運搬かんばん」という名称は一般的ではありません（機能としては運搬指示ですが、用語としては引取りかんばんが適切）。</p>
-        <div className="bg-slate-100 p-3 rounded-md">
-          <p className="font-bold mb-2">トヨタ生産方式の要点</p>
-          <ul className="list-disc pl-5 space-y-1">
-            <li><strong>ジャストインタイム(JIT)：</strong> 後工程引取り方式。</li>
-            <li><strong>平準化：</strong> 後工程が引き取る量が変動すると前工程が混乱するため必須。</li>
-            <li><strong>かんばん：</strong> 在庫量（仕掛品）のコントロール機能を持つ。</li>
-          </ul>
+      <div className="space-y-4">
+        <p><strong>正解：イ</strong></p>
+        <div className="text-sm space-y-2">
+          <p><strong>ア ○：</strong>かんばんの総量は、系内にある在庫（仕掛品）の上限を規定します。</p>
+          <p><strong>イ ×：</strong>「運搬かんばん」ではなく、正しくは<strong>「引取りかんばん」</strong>です。（機能は運搬指示ですが、用語としては引取りかんばんを用います）</p>
+          <p><strong>ウ ○：</strong>後工程が引き取る方式なので、最終工程が波打つと、前工程への変動が増幅されます。よって平準化が必須です。</p>
+          <p><strong>エ ○：</strong>JITと後工程引取り方式の正しい説明です。</p>
         </div>
       </div>
     )
   }
 ];
 
-// ------------------------------------------------------------------
-// VISUAL COMPONENTS (SVG Diagrams)
-// ------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   SVG Components (図解用)
+   ------------------------------------------------------------------ */
 
-const PertChart1 = () => (
-  <div className="w-full overflow-x-auto my-4 bg-white p-2 rounded border border-slate-200">
-    <svg viewBox="0 0 500 250" className="w-full h-auto min-w-[400px]">
-      <defs>
-        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-          <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
-        </marker>
-      </defs>
-      
-      {/* Edges */}
-      <line x1="50" y1="125" x2="150" y2="50" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="90" y="80" fontSize="12" fill="black">A:8</text>
-      
-      <line x1="50" y1="125" x2="150" y2="125" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="90" y="120" fontSize="12" fill="black">B:4</text>
+const PertDiagram1 = () => (
+  <svg viewBox="0 0 400 220" className="w-full h-auto bg-white border rounded">
+    {/* Nodes */}
+    <circle cx="30" cy="110" r="15" fill="#e2e8f0" stroke="black" />
+    <text x="30" y="115" textAnchor="middle" fontSize="12">1</text>
 
-      <line x1="50" y1="125" x2="250" y2="220" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="120" y="190" fontSize="12" fill="black">C:5</text>
+    <circle cx="120" cy="40" r="15" fill="#e2e8f0" stroke="black" />
+    <text x="120" y="45" textAnchor="middle" fontSize="12">2</text>
 
-      <line x1="150" y1="50" x2="250" y2="50" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="190" y="45" fontSize="12" fill="black">D:6</text>
+    <circle cx="120" cy="110" r="15" fill="#e2e8f0" stroke="black" />
+    <text x="120" y="115" textAnchor="middle" fontSize="12">3</text>
 
-      <line x1="150" y1="125" x2="250" y2="50" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="180" y="90" fontSize="12" fill="black">E:8</text>
+    <circle cx="120" cy="180" r="15" fill="#e2e8f0" stroke="black" />
+    <text x="120" y="185" textAnchor="middle" fontSize="12">6</text>
 
-      <line x1="150" y1="125" x2="250" y2="125" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="190" y="120" fontSize="12" fill="black">F:9</text>
+    <circle cx="210" cy="40" r="15" fill="#e2e8f0" stroke="black" />
+    <text x="210" y="45" textAnchor="middle" fontSize="12">4</text>
 
-      <line x1="250" y1="125" x2="350" y2="125" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="290" y="120" fontSize="12" fill="black">I:3</text>
+    <circle cx="210" cy="110" r="15" fill="#e2e8f0" stroke="black" />
+    <text x="210" y="115" textAnchor="middle" fontSize="12">5</text>
 
-      <line x1="250" y1="125" x2="250" y2="220" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="255" y="170" fontSize="12" fill="black">G:7</text>
+    <circle cx="350" cy="110" r="15" fill="#e2e8f0" stroke="black" />
+    <text x="350" y="115" textAnchor="middle" fontSize="12">7</text>
 
-      <line x1="250" y1="50" x2="450" y2="125" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="350" y="80" fontSize="12" fill="black">H:12</text>
-      
-      <line x1="250" y1="220" x2="450" y2="125" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead)" />
-      <text x="350" y="190" fontSize="12" fill="black">J:3</text>
+    {/* Edges with Arrows */}
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="25" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#000" />
+      </marker>
+    </defs>
 
-      {/* Nodes */}
-      <g>
-        <circle cx="50" cy="125" r="15" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
-        <text x="50" y="129" textAnchor="middle" fontSize="12" fontWeight="bold">1</text>
-      </g>
-      <g>
-        <circle cx="150" cy="50" r="15" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
-        <text x="150" y="54" textAnchor="middle" fontSize="12" fontWeight="bold">2</text>
-      </g>
-      <g>
-        <circle cx="150" cy="125" r="15" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
-        <text x="150" y="129" textAnchor="middle" fontSize="12" fontWeight="bold">3</text>
-      </g>
-      <g>
-        <circle cx="250" cy="50" r="15" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
-        <text x="250" y="54" textAnchor="middle" fontSize="12" fontWeight="bold">4</text>
-      </g>
-      <g>
-        <circle cx="250" cy="125" r="15" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
-        <text x="250" y="129" textAnchor="middle" fontSize="12" fontWeight="bold">5</text>
-      </g>
-      <g>
-        <circle cx="250" cy="220" r="15" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
-        <text x="250" y="224" textAnchor="middle" fontSize="12" fontWeight="bold">6</text>
-      </g>
-      <g>
-        <circle cx="450" cy="125" r="15" fill="#e2e8f0" stroke="#475569" strokeWidth="2" />
-        <text x="450" y="129" textAnchor="middle" fontSize="12" fontWeight="bold">7</text>
-      </g>
-    </svg>
-  </div>
+    <line x1="30" y1="110" x2="120" y2="40" stroke="black" markerEnd="url(#arrow)" />
+    <text x="60" y="70" fontSize="10">A:8</text>
+
+    <line x1="30" y1="110" x2="120" y2="110" stroke="black" markerEnd="url(#arrow)" />
+    <text x="75" y="105" fontSize="10">B:4</text>
+
+    <line x1="30" y1="110" x2="120" y2="180" stroke="black" markerEnd="url(#arrow)" />
+    <text x="60" y="160" fontSize="10">C:5</text>
+
+    <line x1="120" y1="40" x2="210" y2="40" stroke="black" markerEnd="url(#arrow)" />
+    <text x="165" y="35" fontSize="10">D:6</text>
+
+    <line x1="120" y1="110" x2="210" y2="40" stroke="black" markerEnd="url(#arrow)" />
+    <text x="150" y="70" fontSize="10">E:8</text>
+
+    <line x1="120" y1="110" x2="210" y2="110" stroke="black" markerEnd="url(#arrow)" />
+    <text x="165" y="105" fontSize="10">F:9</text>
+
+    <line x1="120" y1="180" x2="210" y2="110" stroke="black" markerEnd="url(#arrow)" />
+    <text x="150" y="160" fontSize="10">G:7</text>
+
+    <line x1="210" y1="40" x2="350" y2="110" stroke="black" markerEnd="url(#arrow)" />
+    <text x="280" y="60" fontSize="10">H:12</text>
+
+    <line x1="210" y1="110" x2="350" y2="110" stroke="black" markerEnd="url(#arrow)" />
+    <text x="280" y="105" fontSize="10">I:3</text>
+
+    <line x1="120" y1="180" x2="350" y2="110" stroke="black" markerEnd="url(#arrow)" />
+    <text x="250" y="170" fontSize="10">J:3</text>
+  </svg>
 );
 
-const PertChart2 = () => (
-  <div className="w-full my-4">
-    <div className="bg-white p-2 rounded border border-slate-200 overflow-x-auto">
-      <table className="w-full text-xs text-center border-collapse mb-4">
-        <thead>
-          <tr className="bg-blue-50">
-            <th className="border p-1">作業</th>
-            <th className="border p-1">日数</th>
-            <th className="border p-1">先行</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>A</td><td>20</td><td>なし</td></tr>
-          <tr><td>B</td><td>25</td><td>A</td></tr>
-          <tr><td>C</td><td>15</td><td>A</td></tr>
-          <tr><td>D</td><td>30</td><td>A</td></tr>
-          <tr><td>E</td><td>20</td><td>B</td></tr>
-          <tr><td>F</td><td>25</td><td>C</td></tr>
-          <tr><td>G</td><td>20</td><td>B,C,D</td></tr>
-          <tr><td>H</td><td>10</td><td>E,F,G</td></tr>
-        </tbody>
-      </table>
-      
-      <svg viewBox="0 0 600 200" className="w-full h-auto min-w-[500px]">
-         <defs>
-          <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="28" refY="3.5" orient="auto">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#64748b" />
-          </marker>
-        </defs>
-        {/* Simplified Diagram based on problem description */}
-        <line x1="30" y1="100" x2="130" y2="100" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="70" y="95" fontSize="12">A:20</text>
-        
-        <line x1="130" y1="100" x2="250" y2="40" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="180" y="60" fontSize="12">B:25</text>
+const PertDiagram2 = () => (
+  <svg viewBox="0 0 500 200" className="w-full h-auto bg-white border rounded">
+    <defs>
+      <marker id="arrow2" markerWidth="10" markerHeight="10" refX="25" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#000" />
+      </marker>
+    </defs>
+    {/* Nodes */}
+    <g stroke="black" fill="white" strokeWidth="1">
+      <circle cx="30" cy="100" r="15" />
+      <circle cx="120" cy="100" r="15" />
+      <circle cx="210" cy="40" r="15" />
+      <circle cx="210" cy="160" r="15" />
+      <circle cx="300" cy="100" r="15" />
+      <circle cx="390" cy="100" r="15" />
+      <circle cx="470" cy="100" r="15" />
+    </g>
+    <g textAnchor="middle" fontSize="12">
+      <text x="30" y="105">0</text>
+      <text x="120" y="105">1</text>
+      <text x="210" y="45">2</text>
+      <text x="210" y="165">3</text>
+      <text x="300" y="105">4</text>
+      <text x="390" y="105">5</text>
+      <text x="470" y="105">6</text>
+    </g>
 
-        <line x1="130" y1="100" x2="350" y2="100" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="240" y="95" fontSize="12">D:30</text>
+    {/* Lines */}
+    <g stroke="black" strokeWidth="1" markerEnd="url(#arrow2)">
+      <line x1="30" y1="100" x2="120" y2="100" /> {/* A */}
+      <line x1="120" y1="100" x2="210" y2="40" /> {/* B */}
+      <line x1="120" y1="100" x2="210" y2="160" /> {/* C */}
+      <line x1="120" y1="100" x2="300" y2="100" /> {/* D */}
+      <line x1="210" y1="40" x2="390" y2="100" /> {/* E */}
+      <line x1="210" y1="160" x2="390" y2="100" /> {/* F */}
+      <line x1="300" y1="100" x2="390" y2="100" /> {/* G */}
+      <line x1="390" y1="100" x2="470" y2="100" /> {/* H */}
+    </g>
+    
+    {/* Dummies (dashed) */}
+    <g stroke="black" strokeWidth="1" strokeDasharray="4" markerEnd="url(#arrow2)">
+       <line x1="210" y1="40" x2="300" y2="100" />
+       <line x1="210" y1="160" x2="300" y2="100" />
+    </g>
 
-        <line x1="130" y1="100" x2="250" y2="160" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="180" y="140" fontSize="12">C:15</text>
-
-        {/* Dummy lines represented as dashed */}
-        <line x1="250" y1="40" x2="350" y2="100" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4" markerEnd="url(#arrowhead2)" />
-        <line x1="250" y1="160" x2="350" y2="100" stroke="#94a3b8" strokeWidth="1" strokeDasharray="4" markerEnd="url(#arrowhead2)" />
-
-        <line x1="250" y1="40" x2="480" y2="100" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="360" y="50" fontSize="12">E:20</text>
-
-        <line x1="350" y1="100" x2="480" y2="100" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="410" y="95" fontSize="12">G:20</text>
-
-        <line x1="250" y1="160" x2="480" y2="100" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="360" y="150" fontSize="12">F:25</text>
-
-        <line x1="480" y1="100" x2="570" y2="100" stroke="#64748b" strokeWidth="2" markerEnd="url(#arrowhead2)" />
-        <text x="520" y="95" fontSize="12">H:10</text>
-
-        {/* Nodes */}
-        <g><circle cx="30" cy="100" r="12" fill="white" stroke="black" /><text x="30" y="104" textAnchor="middle" fontSize="10">0</text></g>
-        <g><circle cx="130" cy="100" r="12" fill="white" stroke="black" /><text x="130" y="104" textAnchor="middle" fontSize="10">1</text></g>
-        <g><circle cx="250" cy="40" r="12" fill="white" stroke="black" /><text x="250" y="44" textAnchor="middle" fontSize="10">2</text></g>
-        <g><circle cx="250" cy="160" r="12" fill="white" stroke="black" /><text x="250" y="164" textAnchor="middle" fontSize="10">3</text></g>
-        <g><circle cx="350" cy="100" r="12" fill="white" stroke="black" /><text x="350" y="104" textAnchor="middle" fontSize="10">4</text></g>
-        <g><circle cx="480" cy="100" r="12" fill="white" stroke="black" /><text x="480" y="104" textAnchor="middle" fontSize="10">5</text></g>
-        <g><circle cx="570" cy="100" r="12" fill="white" stroke="black" /><text x="570" y="104" textAnchor="middle" fontSize="10">6</text></g>
-        
-        {/* Boxes for X and Y */}
-        <rect x="235" y="55" width="30" height="30" fill="white" stroke="black" />
-        <text x="250" y="67" textAnchor="middle" fontSize="10">45</text>
-        <text x="250" y="80" textAnchor="middle" fontSize="12" fontWeight="bold">X</text>
-
-        <rect x="235" y="175" width="30" height="30" fill="white" stroke="black" />
-        <text x="250" y="187" textAnchor="middle" fontSize="10">35</text>
-        <text x="250" y="200" textAnchor="middle" fontSize="12" fontWeight="bold">Y</text>
-
-      </svg>
-    </div>
-  </div>
+    <g fontSize="10" fill="blue">
+      <text x="75" y="90">A:20</text>
+      <text x="150" y="60">B:25</text>
+      <text x="150" y="140">C:15</text>
+      <text x="210" y="90">D:30</text>
+      <text x="300" y="60">E:20</text>
+      <text x="300" y="140">F:25</text>
+      <text x="345" y="90">G:20</text>
+      <text x="430" y="90">H:10</text>
+    </g>
+  </svg>
 );
 
-const PertTable3 = () => (
-  <div className="w-full my-4">
-    <table className="w-full text-sm border-collapse border border-slate-300">
-      <thead>
-        <tr className="bg-slate-100">
-          <th className="border p-2">作業</th>
-          <th className="border p-2">日数</th>
-          <th className="border p-2">先行作業</th>
-        </tr>
-      </thead>
-      <tbody className="text-center">
-        <tr><td>A</td><td>5</td><td>-</td></tr>
-        <tr><td>B</td><td>2</td><td>A</td></tr>
-        <tr><td>C</td><td>4</td><td>A</td></tr>
-        <tr><td>D</td><td>2</td><td>C</td></tr>
-        <tr><td>E</td><td>3</td><td>B, D</td></tr>
-      </tbody>
-    </table>
-  </div>
-);
-
-const CpmTable = () => (
-  <div className="w-full my-4 overflow-x-auto">
-    <table className="w-full text-xs text-center border-collapse border border-slate-300 min-w-[300px]">
-      <thead>
-        <tr className="bg-slate-100">
-          <th className="border p-1">作業</th>
-          <th className="border p-1">先行</th>
-          <th className="border p-1">所要(日)</th>
-          <th className="border p-1">最短(日)</th>
-          <th className="border p-1">短縮費用(万円)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>A</td><td>-</td><td>6</td><td>6</td><td>-</td></tr>
-        <tr><td>B</td><td>A</td><td>4</td><td>3</td><td>10</td></tr>
-        <tr><td>C</td><td>A</td><td>5</td><td>2</td><td>30</td></tr>
-        <tr><td>D</td><td>B,C</td><td>6</td><td>3</td><td>50</td></tr>
-      </tbody>
-    </table>
-  </div>
-);
-
-const JohnsonTable = () => (
-  <div className="w-full my-4">
-    <table className="w-full text-sm text-center border-collapse border border-slate-300">
-      <thead>
-        <tr className="bg-orange-100">
-          <th className="border p-2">製品</th>
-          <th className="border p-2">工程1(穴)</th>
-          <th className="border p-2">工程2(塗)</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>A</td><td>10</td><td>5</td></tr>
-        <tr><td>B</td><td>3</td><td>7</td></tr>
-        <tr><td>C</td><td>4</td><td>2</td></tr>
-        <tr><td>D</td><td>8</td><td>6</td></tr>
-      </tbody>
-    </table>
-  </div>
-);
-
-const DiagramRenderer = ({ type }) => {
-  switch(type) {
-    case 'pert1': return <PertChart1 />;
-    case 'pert2': return <PertChart2 />;
-    case 'pert3': return <PertTable3 />;
-    case 'cpm_table': return <CpmTable />;
-    case 'johnson_table': return <JohnsonTable />;
-    default: return null;
-  }
-};
-
-// ------------------------------------------------------------------
-// MAIN APP COMPONENT
-// ------------------------------------------------------------------
+/* ------------------------------------------------------------------
+   Application Logic
+   ------------------------------------------------------------------ */
 
 export default function App() {
-  // --- State ---
-  // 'menu' | 'quiz' | 'result'
-  const [screen, setScreen] = useState('menu');
-  
-  // History: { [id]: { isCorrect: boolean, timestamp: number } }
-  const [history, setHistory] = useState({});
-  
-  // Reviews: { [id]: boolean } (true if marked for review)
-  const [reviews, setReviews] = useState({});
+  const [mode, setMode] = useState('menu'); // menu, quiz, results, history
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState({}); // { questionId: selectedOptionIndex }
+  const [reviewFlags, setReviewFlags] = useState({}); // { questionId: boolean }
+  const [history, setHistory] = useState([]); // Array of past sessions
+  const [filteredQuestions, setFilteredQuestions] = useState([]);
+  const [showExplanation, setShowExplanation] = useState(false);
 
-  // Quiz Session State
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  
-  // Load from local storage on mount
+  // Initialize from LocalStorage
   useEffect(() => {
-    const savedHistory = localStorage.getItem('quiz_history');
-    const savedReviews = localStorage.getItem('quiz_reviews');
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
-    if (savedReviews) setReviews(JSON.parse(savedReviews));
+    try {
+      const storedAnswers = JSON.parse(localStorage.getItem('prod_planner_answers')) || {};
+      const storedReviews = JSON.parse(localStorage.getItem('prod_planner_reviews')) || {};
+      const storedHistory = JSON.parse(localStorage.getItem('prod_planner_history')) || [];
+      setUserAnswers(storedAnswers);
+      setReviewFlags(storedReviews);
+      setHistory(storedHistory);
+      console.log("Loaded data from storage");
+    } catch (e) {
+      console.error("Failed to load storage", e);
+    }
   }, []);
 
-  // Save to local storage on change
+  // Save to LocalStorage
   useEffect(() => {
-    localStorage.setItem('quiz_history', JSON.stringify(history));
-  }, [history]);
-
-  useEffect(() => {
-    localStorage.setItem('quiz_reviews', JSON.stringify(reviews));
-  }, [reviews]);
-
-  // --- Logic ---
-
-  const startQuiz = (mode) => {
-    let qList = [];
-    if (mode === 'all') {
-      qList = [...QUESTIONS];
-    } else if (mode === 'incorrect') {
-      qList = QUESTIONS.filter(q => history[q.id] && !history[q.id].isCorrect);
-    } else if (mode === 'review') {
-      qList = QUESTIONS.filter(q => reviews[q.id]);
+    try {
+      localStorage.setItem('prod_planner_answers', JSON.stringify(userAnswers));
+      localStorage.setItem('prod_planner_reviews', JSON.stringify(reviewFlags));
+      localStorage.setItem('prod_planner_history', JSON.stringify(history));
+    } catch (e) {
+      console.error("Failed to save storage", e);
     }
+  }, [userAnswers, reviewFlags, history]);
 
-    if (qList.length === 0) {
-      alert("対象の問題がありません。");
+  const startQuiz = (filterType) => {
+    let questions = [...QUESTION_DATA];
+    if (filterType === 'review') {
+      questions = questions.filter(q => reviewFlags[q.id]);
+    } else if (filterType === 'wrong') {
+      // Last answer was incorrect or not answered
+      questions = questions.filter(q => {
+        const lastAns = userAnswers[q.id];
+        return lastAns !== undefined && lastAns !== q.answer;
+      });
+    }
+    
+    if (questions.length === 0) {
+      alert("該当する問題がありません。");
       return;
     }
 
-    setQuizQuestions(qList);
-    setCurrentIndex(0);
-    setSelectedOption(null);
-    setIsAnswered(false);
-    setScreen('quiz');
-    console.log(`Quiz started: ${mode}, count: ${qList.length}`);
+    setFilteredQuestions(questions);
+    setCurrentQuestionIndex(0);
+    setShowExplanation(false);
+    setMode('quiz');
   };
 
   const handleAnswer = (optionIndex) => {
-    setSelectedOption(optionIndex);
-    setIsAnswered(true);
+    if (showExplanation) return; // Prevent changing after answered
     
-    const currentQ = quizQuestions[currentIndex];
-    const isCorrect = optionIndex === currentQ.correctAnswer;
-    
-    // Update history
-    setHistory(prev => ({
-      ...prev,
-      [currentQ.id]: { isCorrect, timestamp: Date.now() }
-    }));
-    
-    console.log(`Answered Q${currentQ.id}: ${isCorrect ? 'Correct' : 'Incorrect'}`);
-  };
+    const currentQ = filteredQuestions[currentQuestionIndex];
+    const newAnswers = { ...userAnswers, [currentQ.id]: optionIndex };
+    setUserAnswers(newAnswers);
+    setShowExplanation(true);
 
-  const toggleReview = (id) => {
-    setReviews(prev => {
-      const newState = { ...prev, [id]: !prev[id] };
-      return newState;
-    });
+    // Save history item immediately for this session
+    // (In a real app, might save at end of quiz)
   };
 
   const nextQuestion = () => {
-    if (currentIndex < quizQuestions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-      setSelectedOption(null);
-      setIsAnswered(false);
+    if (currentQuestionIndex < filteredQuestions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setShowExplanation(false);
     } else {
-      setScreen('menu'); // Simple loop back to menu for now
+      // Quiz finished, save session summary
+      const score = filteredQuestions.reduce((acc, q) => {
+        return (userAnswers[q.id] === q.answer) ? acc + 1 : acc;
+      }, 0);
+      
+      const newHistoryItem = {
+        date: new Date().toLocaleString(),
+        score: score,
+        total: filteredQuestions.length,
+        mode: mode
+      };
+      setHistory(prev => [newHistoryItem, ...prev].slice(0, 10)); // Keep last 10
+      setMode('results');
     }
   };
 
-  const restart = () => {
-    setScreen('menu');
+  const toggleReview = (id) => {
+    setReviewFlags(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
   };
 
-  // --- Statistics ---
-  const totalQuestions = QUESTIONS.length;
-  const answeredCount = Object.keys(history).length;
-  const correctCount = Object.values(history).filter(h => h.isCorrect).length;
-  const accuracy = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
-  const incorrectCount = answeredCount - correctCount;
-  const reviewCount = Object.values(reviews).filter(Boolean).length;
+  const currentQ = filteredQuestions[currentQuestionIndex];
 
-  // --- Render Helpers ---
-  
-  const renderMenu = () => (
-    <div className="max-w-2xl mx-auto p-4 space-y-6">
-      <header className="text-center py-6 bg-blue-500 rounded-xl text-white shadow-md">
-        <h1 className="text-2xl font-bold">生産管理 スマート問題集</h1>
-        <p className="opacity-90 mt-2">生産計画・統制・スケジューリング</p>
-      </header>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white p-4 rounded-lg shadow border border-slate-100 flex flex-col items-center">
-          <span className="text-slate-500 text-xs uppercase font-bold tracking-wider">進捗率</span>
-          <span className="text-2xl font-bold text-slate-800">{answeredCount} / {totalQuestions}</span>
-        </div>
-        <div className="bg-white p-4 rounded-lg shadow border border-slate-100 flex flex-col items-center">
-          <span className="text-slate-500 text-xs uppercase font-bold tracking-wider">正答率</span>
-          <span className="text-2xl font-bold text-slate-800">{accuracy}%</span>
-        </div>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="space-y-3">
-        <button 
-          onClick={() => startQuiz('all')}
-          className="w-full py-4 bg-white border-2 border-blue-500 text-blue-600 font-bold rounded-lg hover:bg-blue-50 flex items-center justify-center gap-2 transition-colors"
-        >
-          <Play size={20} />
-          全ての問題を解く
-        </button>
-        
-        <div className="grid grid-cols-2 gap-3">
-          <button 
-            onClick={() => startQuiz('incorrect')}
-            disabled={incorrectCount === 0}
-            className={`py-4 font-bold rounded-lg flex items-center justify-center gap-2 transition-colors border-2 ${
-              incorrectCount > 0 
-                ? 'bg-white border-red-400 text-red-500 hover:bg-red-50' 
-                : 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
-            }`}
-          >
-            <RotateCcw size={20} />
-            間違った問題 ({incorrectCount})
-          </button>
-          
-          <button 
-            onClick={() => startQuiz('review')}
-            disabled={reviewCount === 0}
-            className={`py-4 font-bold rounded-lg flex items-center justify-center gap-2 transition-colors border-2 ${
-              reviewCount > 0 
-                ? 'bg-white border-amber-400 text-amber-600 hover:bg-amber-50' 
-                : 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
-            }`}
-          >
-            <Flag size={20} />
-            要復習のみ ({reviewCount})
-          </button>
-        </div>
-      </div>
-
-      {/* Question List Preview */}
-      <div className="bg-white rounded-lg shadow border border-slate-200 overflow-hidden">
-        <div className="p-3 bg-slate-50 border-b border-slate-200 font-bold text-slate-700">
-          問題一覧
-        </div>
-        <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
-          {QUESTIONS.map((q) => {
-            const hist = history[q.id];
-            const isReviewed = reviews[q.id];
-            return (
-              <div key={q.id} className="p-3 flex items-center justify-between hover:bg-slate-50 text-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 flex justify-center">
-                    {hist ? (
-                      hist.isCorrect ? <CheckCircle className="text-green-500" size={18} /> : <XCircle className="text-red-500" size={18} />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full border-2 border-slate-200"></div>
-                    )}
-                  </div>
-                  <span className="text-slate-700 truncate max-w-[200px] sm:max-w-xs">{q.title}</span>
-                </div>
-                {isReviewed && <Flag className="text-amber-500" size={16} fill="currentColor" />}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderQuiz = () => {
-    const question = quizQuestions[currentIndex];
-    const isCorrect = selectedOption === question.correctAnswer;
-    const isLast = currentIndex === quizQuestions.length - 1;
-    const isMarkedReview = reviews[question.id];
-    const prevHistory = history[question.id];
-
+  // Render Logic
+  if (mode === 'menu') {
     return (
-      <div className="max-w-2xl mx-auto p-4 min-h-screen flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <button onClick={restart} className="text-slate-400 hover:text-slate-600">
-            <Home size={24} />
-          </button>
-          <div className="text-slate-500 font-medium">
-            {currentIndex + 1} / {quizQuestions.length}
-          </div>
-          <div className="w-6"></div> {/* Spacer */}
-        </div>
-
-        {/* Previous Attempt Indicator */}
-        {!isAnswered && prevHistory && (
-          <div className={`mb-4 px-3 py-2 rounded text-xs font-bold flex items-center gap-2 ${prevHistory.isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            {prevHistory.isCorrect ? <CheckCircle size={14} /> : <XCircle size={14} />}
-            前回: {prevHistory.isCorrect ? '正解' : '不正解'}
-          </div>
-        )}
-
-        {/* Question Card */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6 flex-grow">
-          <h2 className="text-lg font-bold text-slate-800 mb-2">{question.title}</h2>
-          <p className="text-slate-700 leading-relaxed mb-4 whitespace-pre-wrap">{question.question}</p>
+      <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center font-sans text-gray-800">
+        <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+          <h1 className="text-2xl font-bold mb-2 text-center text-blue-800">スマート問題集</h1>
+          <h2 className="text-lg font-medium mb-6 text-center text-gray-600">生産計画と生産統制</h2>
           
-          {/* Diagrams */}
-          <DiagramRenderer type={question.diagramType} />
-
-          {/* Options */}
-          <div className="space-y-3 mt-6">
-            {question.options.map((opt, idx) => {
-              let btnClass = "w-full p-4 text-left rounded-lg border transition-all duration-200 flex items-start gap-3 ";
-              
-              if (isAnswered) {
-                if (idx === question.correctAnswer) {
-                  btnClass += "bg-green-50 border-green-500 text-green-800 ring-1 ring-green-500";
-                } else if (idx === selectedOption) {
-                  btnClass += "bg-red-50 border-red-500 text-red-800";
-                } else {
-                  btnClass += "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
-                }
-              } else {
-                btnClass += "bg-white border-slate-200 text-slate-700 hover:bg-blue-50 hover:border-blue-300";
-              }
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => !isAnswered && handleAnswer(idx)}
-                  disabled={isAnswered}
-                  className={btnClass}
-                >
-                  <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center ${
-                    isAnswered && idx === question.correctAnswer ? 'border-green-600 bg-green-600 text-white' : 
-                    isAnswered && idx === selectedOption ? 'border-red-500 text-red-500' :
-                    'border-slate-300 text-slate-400'
-                  }`}>
-                    {['ア','イ','ウ','エ'][idx]}
-                  </div>
-                  <span>{opt}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Feedback & Explanation Section */}
-        {isAnswered && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-            {/* Result Banner */}
-            <div className={`p-4 rounded-lg flex items-center gap-3 mb-4 ${isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-              {isCorrect ? <CheckCircle className="flex-shrink-0" /> : <XCircle className="flex-shrink-0" />}
-              <span className="font-bold text-lg">{isCorrect ? '正解！' : '不正解...'}</span>
-            </div>
-
-            {/* Explanation Content */}
-            <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 mb-6">
-              <div className="flex items-center gap-2 mb-3 text-slate-500 font-bold uppercase text-xs tracking-wider">
-                <AlertCircle size={14} /> 解説
-              </div>
-              <div className="text-slate-700">
-                {question.explanation}
-              </div>
-              
-              {/* Review Checkbox */}
-              <div className="mt-6 pt-4 border-t border-slate-200">
-                <label className="flex items-center gap-2 cursor-pointer select-none group">
-                  <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isMarkedReview ? 'bg-amber-400 border-amber-400 text-white' : 'bg-white border-slate-300 text-transparent group-hover:border-amber-300'}`}>
-                    <Check size={14} strokeWidth={3} />
-                  </div>
-                  <input 
-                    type="checkbox" 
-                    className="hidden" 
-                    checked={!!isMarkedReview} 
-                    onChange={() => toggleReview(question.id)} 
-                  />
-                  <span className={`text-sm font-medium ${isMarkedReview ? 'text-amber-600' : 'text-slate-500 group-hover:text-amber-500'}`}>
-                    あとで復習する（チェックリストに追加）
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Next Button */}
-            <button
-              onClick={nextQuestion}
-              className="w-full py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 active:transform active:scale-95 transition-all flex items-center justify-center gap-2"
+          <div className="space-y-4">
+            <button 
+              onClick={() => startQuiz('all')}
+              className="w-full flex items-center justify-between p-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             >
-              {isLast ? '結果画面へ' : '次の問題へ'} <ChevronRight />
+              <span className="flex items-center gap-2"><Play size={20}/> すべての問題に挑戦</span>
+              <span className="bg-blue-800 text-xs px-2 py-1 rounded">{QUESTION_DATA.length}問</span>
+            </button>
+
+            <button 
+              onClick={() => startQuiz('wrong')}
+              className="w-full flex items-center justify-between p-4 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200 transition border border-orange-200"
+            >
+              <span className="flex items-center gap-2"><RotateCcw size={20}/> 前回間違えた問題</span>
+            </button>
+
+            <button 
+              onClick={() => startQuiz('review')}
+              className="w-full flex items-center justify-between p-4 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition border border-yellow-200"
+            >
+              <span className="flex items-center gap-2"><Flag size={20}/> 要復習の問題</span>
+              <span className="bg-yellow-200 text-xs px-2 py-1 rounded">
+                {Object.values(reviewFlags).filter(Boolean).length}問
+              </span>
+            </button>
+
+            <button 
+              onClick={() => setMode('history')}
+              className="w-full flex items-center justify-center p-4 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
+            >
+              <span className="flex items-center gap-2"><BarChart2 size={20}/> 学習履歴を見る</span>
             </button>
           </div>
-        )}
+        </div>
       </div>
     );
-  };
+  }
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      {screen === 'menu' && renderMenu()}
-      {screen === 'quiz' && renderQuiz()}
-    </div>
-  );
+  if (mode === 'quiz' && currentQ) {
+    const isAnswered = showExplanation;
+    const selectedIdx = userAnswers[currentQ.id];
+    const isCorrect = selectedIdx === currentQ.answer;
+
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 md:p-8 font-sans">
+        <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+          {/* Header */}
+          <div className="bg-gray-800 text-white p-4 flex justify-between items-center">
+            <div className="text-sm font-semibold">Q{currentQuestionIndex + 1} / {filteredQuestions.length}</div>
+            <div className="text-sm opacity-75">{currentQ.category}</div>
+            <button onClick={() => setMode('menu')} className="p-1 hover:bg-gray-700 rounded"><Home size={20}/></button>
+          </div>
+
+          {/* Question Body */}
+          <div className="p-6">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-lg font-bold text-gray-900 leading-relaxed">{currentQ.question}</h2>
+              <button 
+                onClick={() => toggleReview(currentQ.id)}
+                className={`p-2 rounded-full ${reviewFlags[currentQ.id] ? 'bg-yellow-100 text-yellow-600' : 'text-gray-300 hover:text-gray-400'}`}
+              >
+                <Flag fill={reviewFlags[currentQ.id] ? "currentColor" : "none"} />
+              </button>
+            </div>
+
+            {/* Diagrams/Tables */}
+            {currentQ.table && <div className="mb-6 overflow-x-auto">{currentQ.table}</div>}
+            {currentQ.diagramType === 'pert1' && <div className="mb-6 max-w-md mx-auto"><PertDiagram1 /></div>}
+            {currentQ.diagramType === 'pert2' && <div className="mb-6 max-w-lg mx-auto"><PertDiagram2 /></div>}
+
+            {/* Options */}
+            <div className="space-y-3 mt-6">
+              {currentQ.options.map((option, idx) => {
+                let btnClass = "w-full text-left p-4 rounded-lg border transition relative ";
+                if (isAnswered) {
+                  if (idx === currentQ.answer) btnClass += "bg-green-50 border-green-500 text-green-900 font-semibold ";
+                  else if (idx === selectedIdx) btnClass += "bg-red-50 border-red-500 text-red-900 ";
+                  else btnClass += "bg-gray-50 border-gray-200 text-gray-500 opacity-60 ";
+                } else {
+                  btnClass += "hover:bg-blue-50 border-gray-200 hover:border-blue-300 ";
+                }
+
+                return (
+                  <button 
+                    key={idx} 
+                    onClick={() => handleAnswer(idx)} 
+                    disabled={isAnswered}
+                    className={btnClass}
+                  >
+                    <span className="mr-3 font-bold inline-block w-6 h-6 rounded-full bg-white border text-center text-sm leading-6">
+                      {['ア','イ','ウ','エ'][idx]}
+                    </span>
+                    {option}
+                    {isAnswered && idx === currentQ.answer && <Check className="absolute right-4 top-4 text-green-600" />}
+                    {isAnswered && idx === selectedIdx && idx !== currentQ.answer && <X className="absolute right-4 top-4 text-red-600" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Explanation Area */}
+          {isAnswered && (
+            <div className="border-t-2 border-gray-100 p-6 bg-slate-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="flex items-center gap-2 mb-4">
+                <BookOpen className="text-blue-600" size={24}/>
+                <h3 className="text-xl font-bold text-gray-800">解説</h3>
+                <span className={`ml-auto px-3 py-1 rounded-full text-sm font-bold ${isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {isCorrect ? '正解！' : '不正解...'}
+                </span>
+              </div>
+              
+              <div className="text-gray-700 leading-relaxed">
+                {currentQ.explanation}
+              </div>
+
+              <div className="mt-8 flex justify-end">
+                <button 
+                  onClick={nextQuestion}
+                  className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow-lg hover:bg-blue-700 transition flex items-center gap-2"
+                >
+                  {currentQuestionIndex < filteredQuestions.length - 1 ? '次の問題へ' : '結果を見る'}
+                  <ChevronRight />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'results') {
+    const score = filteredQuestions.reduce((acc, q) => {
+      return (userAnswers[q.id] === q.answer) ? acc + 1 : acc;
+    }, 0);
+    const percentage = Math.round((score / filteredQuestions.length) * 100);
+
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-xl shadow-xl p-8 max-w-md w-full text-center">
+          <Trophy className="mx-auto text-yellow-500 mb-4" size={48} />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">お疲れ様でした！</h2>
+          <div className="text-6xl font-black text-blue-600 mb-4">{score} <span className="text-2xl text-gray-400">/ {filteredQuestions.length}</span></div>
+          <p className="text-gray-500 mb-8">正答率: {percentage}%</p>
+          
+          <button 
+            onClick={() => setMode('menu')}
+            className="w-full bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-gray-900 transition"
+          >
+            メニューに戻る
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === 'history') {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">学習履歴</h2>
+            <button onClick={() => setMode('menu')} className="text-blue-600 hover:underline">メニューへ</button>
+          </div>
+          
+          {history.length === 0 ? (
+            <p className="text-center text-gray-400 py-8">まだ履歴がありません。</p>
+          ) : (
+            <div className="space-y-4">
+              {history.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center p-4 border rounded bg-gray-50">
+                  <div>
+                    <div className="font-bold text-gray-700">{item.date}</div>
+                    <div className="text-xs text-gray-500">Total: {item.total}問</div>
+                  </div>
+                  <div className="text-xl font-bold text-blue-600">
+                    {item.score}点
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 }
